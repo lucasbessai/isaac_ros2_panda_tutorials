@@ -132,7 +132,7 @@ ros2 topic pub -r 20 /joint_command sensor_msgs/msg/JointState "{
 - it can also be run without being an executable with python3 path/to/script.py. Specifcally:
 
 ```bash
-python3 ~/IsaacRos2_tutorials/test_ws/scripts/position_velocity_publisher.py
+python3 ~/IsaacRos2_tutorials/test_ws/src/panda_controllers/scripts/position_velocity_publisher.py
 ```
 
 **Toy Problem: motion planning for Franka Panada arm in Issac Sim using ros2**
@@ -170,6 +170,17 @@ to run the node program
 source ~/IsaacRos2_tutorials/test_ws/install/setup.bash
 ros2 run panda_controllers position_pd_controller
 ```
+after killing controller node run in terminal to zero joint efforts (arm goes limp):
+```bash
+ros2 topic pub -1 20 /joint_command sensor_msgs/msg/JointState "{
+  header: {stamp: {sec: 0, nanosec: 0}, frame_id: ''},
+  name: ['panda_joint1', 'panda_joint2', 'panda_joint3', 'panda_joint4', 'panda_joint5', 'panda_joint6', 'panda_joint7', 'panda_finger_joint1', 'panda_finger_joint2'],
+  position: [],
+  velocity: [],
+  effort: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+}"
+```
+
 
 script to quickly change joint stiffnesses and damping in Isaac Sim using the script editor window (Window -> Script Editor). stiffness = 0.0 and damping = 0.05 work well: 
 ```python

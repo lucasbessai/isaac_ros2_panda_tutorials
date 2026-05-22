@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'position_pd_controller = panda_controllers.panda_position_pd_controller:main',
+            'panda_monitor = panda_controllers.panda_monitor:main',
         ],
     },
 )
