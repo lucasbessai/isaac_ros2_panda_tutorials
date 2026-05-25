@@ -172,7 +172,7 @@ ros2 run panda_controllers position_pd_controller
 ```
 after killing controller node run in terminal to zero joint efforts (arm goes limp):
 ```bash
-ros2 topic pub -1 20 /joint_command sensor_msgs/msg/JointState "{
+ros2 topic pub -r 5 /joint_command sensor_msgs/msg/JointState "{
   header: {stamp: {sec: 0, nanosec: 0}, frame_id: ''},
   name: ['panda_joint1', 'panda_joint2', 'panda_joint3', 'panda_joint4', 'panda_joint5', 'panda_joint6', 'panda_joint7', 'panda_finger_joint1', 'panda_finger_joint2'],
   position: [],
@@ -228,3 +228,10 @@ for path, (stiff, damp) in joint_settings.items():
 ```
 - "pinocchio" library can be used for static gravity compensation. 
   - gravity compensation is a feedforward term added to the control law. Based on the model parameters and the current position you can calculate the torque required to counter the force of gravity 
+
+  ```bash
+  ros2 topic pub /target_pose geometry_msgs/msg/Pose "{
+    position: {x: 0.4, y: 0.0, z: 0.5},
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+  }"
+  ```

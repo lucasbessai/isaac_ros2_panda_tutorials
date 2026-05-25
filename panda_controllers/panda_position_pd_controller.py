@@ -26,6 +26,10 @@ class PDController(Node):
             JointState, '/joint_states', self.state_callback, 10)
         self.pub = self.create_publisher(
             JointState, '/joint_command', 10)
+        self.target_sub = self.create_subscription(
+            JointState, '/joint_target', self.target_callback, 10)
+        
+        self.target_position = None
         
         # PD gains per joint
         # self.kp = np.array([400, 400, 400, 400, 400, 400, 400, 400, 400])
@@ -33,22 +37,36 @@ class PDController(Node):
         # self.kp = np.array([100, 100, 100, 100, 50, 50, 50, 10, 10])
         # self.kd = np.array([10, 10, 10, 10, 5, 5, 5, 1, 1])
 
-        # self.kp = np.array([200, 200, 150, 100, 75, 50, 25, 0, 0])
-        self.kp = np.array([150, 170, 120, 120, 75, 75, 25, 150, 150])
+        self.kp = np.array([200, 200, 150, 100, 75, 50, 25, 150, 150])
+        # self.kp = np.array([150, 170, 120, 120, 75, 75, 25, 150, 150])
         # self.kp = np.array([100, 100, 88, 75, 50, 40, 20, 10, 10])
 
-        # self.kd = np.array([20, 20, 15, 15, 10, 8, 5, 1, 1])
+        # self.kd = np.array([20, 20, 15, 15, 10, 8, 5, 0.5, 0.5])
         self.kd = np.array([10, 10, 8, 8, 5, 4, 2, 0.5, 0.5])
         # self.kd = np.array([5, 5, 4, 4, 2, 1, 0.5, 0, 0])
 
-        self.ki = np.array([1.0, 1.0, 0.75, 0.5, 0.375, 0.25, 0.125, 0.0, 0.0])
+        self.ki = np.array([1.0, 1.0, 0.75, 0.5, 0.375, 0.25, 0.125, 0.0, 0.0]) * 10
+        # self.ki = np.array([0.5, 30.0, 0.4, 30.0, 0.2, 10.0, 0.05, 0.0, 0.0])
         # self.ki = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
         
         # Target position for 7 joints + 2 gripper fingers
         # arm straight up position, gripper closed
         # self.target_position = np.array([0.0, 0.0, 0.0, -0.0698, 0.0, 0.0, 0.0, 0.0, 0.0])
+
         # rest potion, gripper open
-        self.target_position = np.array([0.0, -1.16, 0.0, -2.3, 0.0, 1.6, 1.1, 0.4, 0.4])
+        # self.target_position = np.array([0.0, -1.16, 0.0, -2.3, 0.0, 1.6, 1.1, 0.4, 0.4])
+        # random position target within joint limits
+        # self.target_position = np.array([
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint1"]),
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint2"]),
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint3"]),
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint4"]),
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint5"]),
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint6"]),
+        #     np.random.uniform(*JOINT_LIMITS["panda_joint7"]),
+        #     np.random.uniform(*JOINT_LIMITS["gripper_finger_joint1"]),
+        #     np.random.uniform(*JOINT_LIMITS["gripper_finger_joint2"])
+        # ])
         # self.target_position = np.array([0.0, -1.76, 0.0, -2.8, 0.0, 0.0, 1.1, 0.0, 0.0])
         self.current_position = None
         self.current_velocity = None
@@ -83,6 +101,9 @@ class PDController(Node):
         self.current_position = np.array(msg.position)
         self.current_velocity = np.array(msg.velocity)
         self.compute_and_publish()
+
+    def target_callback(self, msg):
+        self.target_position = np.array(msg.position)
 
     def compute_and_publish(self):
         if self.current_position is None:
@@ -124,9 +145,9 @@ class PDController(Node):
         # Saturate final effort command
         cmd = np.clip(cmd, -self.effort_limit, self.effort_limit)        
 
-        # PID control law
-        error = self.target_position - self.current_position
-        cmd = self.kp * error - self.kd * self.current_velocity
+        # PD control law
+        # error = self.target_position - self.current_position
+        # cmd = self.kp * error - self.kd * self.current_velocity
         
         out = JointState()
         out.header.stamp = self.get_clock().now().to_msg()

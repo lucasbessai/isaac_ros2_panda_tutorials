@@ -1,0 +1,7 @@
+# PandaIK.srv
+geometry_msgs/Pose target_pose    # request side
+float64[] q_initial
+---                                # separator
+sensor_msgs/JointState joint_target   # response side
+bool success
+string message
