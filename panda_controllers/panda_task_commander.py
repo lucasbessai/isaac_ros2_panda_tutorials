@@ -6,6 +6,16 @@ from sensor_msgs.msg import JointState
 from panda_interfaces.srv import PandaIK
 
 
+JOINT_LIMITS = [
+    (-2.8973, 2.8973),  # joint1
+    (-1.7628, 1.7628),  # joint2
+    (-2.8973, 2.8973),  # joint3
+    (-3.0718, -0.0698), # joint4
+    (-2.8973, 2.8973),  # joint5
+    (-0.0175,  3.7525), # joint6
+    (-2.8973, 2.8973),  # joint7
+]
+
 class TaskCommander(Node):
     def __init__(self):
         super().__init__('panda_task_commander')
@@ -30,9 +40,10 @@ class TaskCommander(Node):
         while not self.ik_client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Waiting for IK service...')
     
+
     def joint_state_callback(self, msg):
         self.current_joint_positions = list(msg.position)
-        
+
     def pose_callback(self, pose_msg):
         # Build service request
         request = PandaIK.Request()

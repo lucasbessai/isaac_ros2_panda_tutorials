@@ -229,9 +229,34 @@ for path, (stiff, damp) in joint_settings.items():
 - "pinocchio" library can be used for static gravity compensation. 
   - gravity compensation is a feedforward term added to the control law. Based on the model parameters and the current position you can calculate the torque required to counter the force of gravity 
 
-  ```bash
-  ros2 topic pub /target_pose geometry_msgs/msg/Pose "{
-    position: {x: 0.4, y: 0.0, z: 0.5},
-    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-  }"
-  ```
+- "ikpy" is also a standard library used for inverse kinematics from a .URDF file
+  - `ikpy.Chain.from_urdf_file()` extracts the kinematic chain from the urdf file and creates a class of object that has an inverse kinematics method. Several parameters are required to define the chain proberly
+
+
+Node files using packages that conflict with the ros2 python framework must be run inside a dedicated .venv. They cannot be run with `ros2 run /path/to`. 
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/IsaacRos2_tutorials/test_ws/install/setup.bash
+source ~/IsaacRos2_tutorials/test_ws/monitor_venv/bin/activate
+python3 ~/IsaacRos2_tutorials/test_ws/src/panda_controllers/panda_controllers/
+```
+
+```
+test_ws/src/
+├── panda_controllers/        # ament_python — nodes only
+│   └── panda_controllers/
+│       ├── panda_position_pd_controller.py
+│       ├── panda_ik_service.py
+│       └── panda_task_commander.py
+└── panda_interfaces/         # ament_cmake — message/service definitions only
+    └── srv/
+        └── PandaIK.srv
+```
+
+```bash
+ros2 topic pub /target_pose geometry_msgs/msg/Pose "{
+  position: {x: 0.4, y: 0.0, z: 0.5},
+  orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+}"
+```

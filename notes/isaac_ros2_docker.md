@@ -49,3 +49,30 @@
     2. reinforcement learning with isaaclab
 
 -  
+
+**Docker Crash Course for Absolute Beginners [NEW], TechWorld with Nana, https://www.youtube.com/watch?v=pg19Z8LL06w&list=PLNpiTYmxkvv75v4WkcaTi4-4h4z8967zd&index=14&t=219s**
+-
+
+- DockerHub is a docker image registry with varified docker images
+  - A docker image is essentially a file that contains all the information to run some software in a container. 
+- Common commands:
+  - ```docker image```
+    - lists all active images
+  - `docker ps` 
+    - lists all container history
+  - `docker pull <image tag>: <version>`
+    - pulls an image form dockerhub image registry. A different registry could be specified
+  - `docker run <image tag>: <version>`
+    - Opens the specified docker image in a container
+  - 
+- A "Dockerfile" is used to define how some program should be built. This file creates the docker image which can be used to open a container. 
+
+**Running ros2 and Isaac Sim in a container**
+-
+with docker installed follow "Container Deployment with GUI" installation proceedure at https://docs.isaacsim.omniverse.nvidia.com/5.1.0/installation/install_container.html. 
+1. pulls the isaacsim docker image
+2. makes directories within the host machine that are shared with the docker container. Things generated in Isaac Sim will not only live within the container. When it is stopped they can be retrieved when it is started again.
+3. opens the isaacsim image in a container with several parameters
+4. Lauches issac sim.
+
+
