@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
+print("SCRIPT STARTED") 
 import rclpy
+print("rclpy imported") 
 from rclpy.node import Node
+print("Node imported")
 from ikpy.chain import Chain
+print("Chain imported")
 import numpy as np
+print("numpy imported")
 from scipy.spatial.transform import Rotation
-
-# You will need to define this custom service type in panda_interfaces
+print("Rotation imported")
 from panda_interfaces.srv import PandaIK
+print("PandaIK service imported")
 
 URDF_PATH = "/home/fpiadmin/isaacsim/exts/isaacsim.asset.importer.urdf/data/urdf/robots/franka_description/robots/panda_arm_hand.urdf"
 
@@ -26,16 +31,22 @@ JOINT_LIMITS = [
     (-2.8973, 2.8973),  # joint7
 ]
 
+# Temporarily load without mask to inspect
+temp_chain = Chain.from_urdf_file(URDF_PATH, base_elements=["panda_link0"])
+for i, link in enumerate(temp_chain.links):
+    print(f"{i}: {link.name}")
+
 class IKService(Node):
     def __init__(self):
+        print("A. super().__init__")
         super().__init__('panda_ik_service')
-        
+        print("B. Loading kinematic chain from URDF")
         # Load chain once at startup — expensive, do not do per request
         try:
             self.chain = Chain.from_urdf_file(
                 URDF_PATH,
                 base_elements=["panda_link0"],
-                active_links_mask=[False, True, True, True, True, True, True, True, False]
+                active_links_mask=[False, True, True, True, True, True, True, True, False, False, False]
             )
             self.get_logger().info(f'Chain loaded with {len(self.chain.links)} links')
             self.get_logger().info(f'Link names: {[l.name for l in self.chain.links]}')
@@ -65,7 +76,7 @@ class IKService(Node):
         
         if len(request.q_initial) >= 7:
             # Use only the first 7 values (arm joints), wrap with base and tip zeros
-            initial = [0.0] + list(request.q_initial[:7]) + [0.0]
+            initial = [0.0] + list(request.q_initial[:7]) + [0.0, 0.0, 0.0] 
         else:
             initial = [0.0] * len(self.chain.links)
         
@@ -98,13 +109,22 @@ class IKService(Node):
 
 
 def main(args=None):
+    print("1. rclpy.init")
     rclpy.init(args=args)
+    print("2. Creating IKService node")
     try:
         node = IKService()
+        print("3. Spinning node")
         rclpy.spin(node)
+        print("4. spin finished, shutting down")
     except Exception as e:
         print(f"Node failed: {e}")
         import traceback
         traceback.print_exc()
     finally:
         rclpy.shutdown()
+        print("5. shutdown completed")
+
+if __name__ == '__main__':
+    print("calling main")
+    main()

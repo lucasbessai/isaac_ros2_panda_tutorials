@@ -37,15 +37,18 @@ class PDController(Node):
         # self.kp = np.array([100, 100, 100, 100, 50, 50, 50, 10, 10])
         # self.kd = np.array([10, 10, 10, 10, 5, 5, 5, 1, 1])
 
-        self.kp = np.array([200, 200, 150, 100, 75, 50, 25, 150, 150])
+        self.kp = np.array([200, 200, 150, 100, 75, 50, 25])
+        # self.kp = np.array([200, 200, 150, 100, 75, 50, 25, 150, 150])
         # self.kp = np.array([150, 170, 120, 120, 75, 75, 25, 150, 150])
         # self.kp = np.array([100, 100, 88, 75, 50, 40, 20, 10, 10])
 
         # self.kd = np.array([20, 20, 15, 15, 10, 8, 5, 0.5, 0.5])
-        self.kd = np.array([10, 10, 8, 8, 5, 4, 2, 0.5, 0.5])
+        # self.kd = np.array([10, 10, 8, 8, 5, 4, 2, 0.5, 0.5])
+        self.kd = np.array([10, 10, 8, 8, 5, 4, 2])
         # self.kd = np.array([5, 5, 4, 4, 2, 1, 0.5, 0, 0])
 
-        self.ki = np.array([1.0, 1.0, 0.75, 0.5, 0.375, 0.25, 0.125, 0.0, 0.0]) * 10
+        # self.ki = np.array([1.0, 1.0, 0.75, 0.5, 0.375, 0.25, 0.125, 0.0, 0.0]) * 10
+        self.ki = np.array([1.0, 1.0, 0.75, 0.5, 0.375, 0.25, 0.125]) * 10
         # self.ki = np.array([0.5, 30.0, 0.4, 30.0, 0.2, 10.0, 0.05, 0.0, 0.0])
         # self.ki = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0])
         
@@ -84,16 +87,16 @@ class PDController(Node):
         # ]
 
         # Initialize integral state
-        self.error_integral = np.zeros(9, dtype=float)
+        self.error_integral = np.zeros(7, dtype=float)
 
         #Initialize time for integral calculation
         self.last_time = None
 
         #Anti-windup limits for integral term
-        self.integral_limit = np.array([0.5, 2.0, 0.5, 2.0, 0.4, 1.0, 0.3, 0.0, 0.0], dtype=float)
+        self.integral_limit = np.array([0.5, 2.0, 0.5, 2.0, 0.4, 1.0, 0.3], dtype=float)
 
         #Effort saturation limits (max torque/force per joint)
-        self.effort_limit = np.array([87, 87, 87, 87, 12, 12, 12, 200, 200], dtype=float)
+        self.effort_limit = np.array([87, 87, 87, 87, 12, 12, 12], dtype=float)
 
 
     def state_callback(self, msg):
@@ -104,11 +107,23 @@ class PDController(Node):
 
     def target_callback(self, msg):
         self.target_position = np.array(msg.position)
+        self.target_joint_names = msg.name
 
     def compute_and_publish(self):
-        if self.current_position is None:
+        if self.current_position is None or self.target_position is None:
             return
-        
+
+
+        current_position = []
+        current_velocity = []
+
+        for name in self.joint_names:
+            if name in self.target_joint_names:
+                idx = self.joint_names.index(name)
+                current_position.append(self.current_position[idx])
+                current_velocity.append(self.current_velocity[idx])
+                
+
         now = self.get_clock().now()
         now_sec = now.nanoseconds * 1e-9
 
@@ -123,7 +138,7 @@ class PDController(Node):
         if dt <= 0.0 or dt > 0.1:
             return
 
-        error = self.target_position - self.current_position
+        error = self.target_position - np.array(current_position)
 
         # Numerical integration of error
         self.error_integral += error * dt
@@ -138,7 +153,7 @@ class PDController(Node):
         # PID effort command
         cmd = (
             self.kp * error
-            - self.kd * self.current_velocity
+            - self.kd * np.array(current_velocity)
             + self.ki * self.error_integral
         )
 
@@ -151,7 +166,7 @@ class PDController(Node):
         
         out = JointState()
         out.header.stamp = self.get_clock().now().to_msg()
-        out.name = self.joint_names
+        out.name = self.target_joint_names
         # For position control, publish to the position field and leave velocity/effort empty. 
         # For torque control, publish to the effort field and leave position/velocity empty.
         out.effort = cmd.tolist()

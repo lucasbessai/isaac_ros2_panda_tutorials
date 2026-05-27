@@ -54,7 +54,7 @@
 
 *Why are the path planning problem and the trajectory planning problem separated in the literature?*
 
-- Simple solution: discretized path  à feed to PID controller at a fixed rate à End effector moves along waypoints to desired final state. 
+- Simple solution: discretized path -> feed to PID controller at a fixed rate -> End effector moves along waypoints to desired final state. 
 
   - There is a difference between waypoint-following with feedback control (setpoint regulation) and trajectory planning.  
 
